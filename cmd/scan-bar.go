@@ -51,9 +51,12 @@ type scanBarFunc func(string)
 // scanBarFactory returns a progress bar function to report URL scanning.
 func scanBarFactory() scanBarFunc {
 	prevLineSize := 0
+	var termWidth int
 	termWidth, e := pb.GetTerminalWidth()
 	if e != nil {
-		console.Fatalln("Unable to get terminal size. Please use --quiet option.")
+		// Underlying terminal may not support this operation,
+		// falling back to default 80 width.
+		termWidth = 80
 	}
 
 	return func(message string) {
