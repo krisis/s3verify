@@ -313,7 +313,7 @@ func SignV4(req http.Request, accessKeyID, secretAccessKey, location string) *ht
 }
 
 // generateSignedChunks - generates a data stream with streamed chunk metadata
-func generateSignedChunks(body io.Reader, seed, region, secretKey string, chunkSize int64) io.ReadCloser {
+func generateSignedChunks(body io.Reader, seed, region, secretKey string, chunkSize int64, currTime time.Time) io.ReadCloser {
 	var stream []byte
 	for {
 		buffer := make([]byte, chunkSize)
@@ -322,7 +322,6 @@ func generateSignedChunks(body io.Reader, seed, region, secretKey string, chunkS
 			return nil
 		}
 
-		currTime := time.Now().UTC()
 		// Get scope.
 		scope := strings.Join([]string{
 			currTime.Format(yyyymmdd),
@@ -401,7 +400,7 @@ func StreamingSignV4(req http.Request, accessKeyID, secretAccessKey, location st
 	req.Header.Set("Authorization", auth)
 
 	// Rebuild the request body after signature signing to deliver correct chunk metadata
-	req.Body = generateSignedChunks(req.Body, signature, location, secretAccessKey, chunkSize)
+	req.Body = generateSignedChunks(req.Body, signature, location, secretAccessKey, chunkSize, t)
 
 	return &req
 }
